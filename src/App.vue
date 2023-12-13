@@ -104,6 +104,17 @@ export default {
 
         savedDataJSON() {
             return JSON.stringify(this.savedData)
+        },
+
+        triggerForUpdateServiceDataInStore() {
+            return {
+                price: this.price,
+                quantity: this.quantity,
+                amount: this.amount,
+                nonce: this.nonce,
+                log: this.log,
+                mutationOrder: this.inputsMutationOrder
+            }
         }
     },
 
@@ -126,7 +137,6 @@ export default {
             this.log.unshift({
                 message, status
             });
-            this.saveAppServiceDataInStore();
         },
 
         submitForm() {
@@ -151,7 +161,6 @@ export default {
                 this.addLog(`Data saved successfully. New data: ${this.savedDataJSON}`, 'success');
                 this.saveCartInStore();
                 this.nonce++;
-                this.saveAppServiceDataInStore();
 
             }).catch(() => {
                 this.addLog(`Error. Try later...`, 'error')
@@ -169,7 +178,6 @@ export default {
         },
 
         saveAppServiceDataInStore() {
-            console.log('save service data fn');
             const data = {
                 log: this.log,
                 inputsMutationOrder: this.inputsMutationOrder,
@@ -212,12 +220,17 @@ export default {
 
     },
 
+    watch: {
+        triggerForUpdateServiceDataInStore() {
+            this.saveAppServiceDataInStore();
+        }
+    },
+
     created() {
         this.onInputChangeDebounced = debounce((inputName, val) => {
             this[inputName] = +val;
             this.updateMutationOrder(inputName);
             this.calcEarlierModifiedField();
-            this.saveAppServiceDataInStore();
             this.addLog(`Input ${inputName} was changed`);
         })
 
