@@ -83,9 +83,9 @@ const initialInputsMutationOrder = ['price', 'quantity', 'amount']
 export default {
     name: 'App', data() {
         return {
-            price: 1,
-            quantity: 2,
-            amount: 3,
+            price: null,
+            quantity: null,
+            amount: null,
             nonce: 0,
 
             savedData: null,
@@ -100,6 +100,24 @@ export default {
     computed: {
         earlierMutatedInput() {
             return this.inputsMutationOrder[2];
+        },
+
+        calculatingInput() {
+            const nullInputs = this.inputsMutationOrder.filter(inputName => {
+                return this[inputName] === null;
+            })
+
+            //  do nothing if filled only one input
+            if (nullInputs.length === 2) {
+                return null;
+            }
+
+            // if only one input haven't edit - calc value for it
+            if (nullInputs.length === 1) {
+                return nullInputs[0];
+            }
+
+            return this.earlierMutatedInput;
         },
 
         savedDataJSON() {
@@ -119,17 +137,29 @@ export default {
     },
 
     methods: {
-        calcEarlierModifiedField() {
-            this['calc_' + this.earlierMutatedInput]()
+        calcInputValue() {
+            if (this.calculatingInput === null) {
+                return;
+            }
+            this[`${this.calculatingInput}Calc`]();
         },
 
-        calc_price() {
+        priceCalc() {
+            if (this.amount === '' || this.quantity === '' || +this.quantity === 0) {
+                return;
+            }
             this.price = this.amount / this.quantity
         },
-        calc_quantity() {
+        quantityCalc() {
+            if (this.amount === '' || this.price === '' || +this.price === 0) {
+                return;
+            }
             this.quantity = this.amount / this.price
         },
-        calc_amount() {
+        amountCalc() {
+            if (this.price === '' || this.quantity === '') {
+                return;
+            }
             this.amount = this.price * this.quantity
         },
 
@@ -228,9 +258,9 @@ export default {
 
     created() {
         this.onInputChangeDebounced = debounce((inputName, val) => {
-            this[inputName] = +val;
+            this[inputName] = val;
             this.updateMutationOrder(inputName);
-            this.calcEarlierModifiedField();
+            this.calcInputValue();
             this.addLog(`Input ${inputName} was changed`);
         })
 
