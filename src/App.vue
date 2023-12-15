@@ -204,7 +204,7 @@ export default {
             this[`set${capitalizeFirstLetter(inputName)}`](val);
             this.updateMutationOrder(inputName);
             this.calcInputValue();
-            this.addLog({message: `Input ${inputName.replace('current', '')} was changed`});
+            this.addLog({message: `Input ${inputName.replace('current', '')} has changed`});
         })
     },
 
