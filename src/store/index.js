@@ -1,10 +1,12 @@
 import Vue from 'vue'
 import Vuex from 'vuex';
-import { mockApi } from '@/api/mockApi';
+import createPersistedState from "vuex-persistedstate";
+import mockApi from '@/api/mockApi';
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
+    plugins: [createPersistedState()],
     state: {
         // current values in inputs
         currentPrice: null,
@@ -50,8 +52,6 @@ export default new Vuex.Store({
         },
 
         addLog(store, {message, status}) {
-            console.log(message)
-            console.log(status)
             store.log.unshift({
                 message, status
             });
@@ -64,7 +64,7 @@ export default new Vuex.Store({
     },
     actions: {
         sendData({commit, state}, payload) {
-            return mockApi(payload).then(({data}) => {
+            return mockApi.sendData(payload).then(({data}) => {
                 commit('setPrice', data.price);
                 commit('setQuantity', data.quantity);
                 commit('setAmount', data.amount);
