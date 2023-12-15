@@ -35,7 +35,7 @@
 
             <div class="cart-form__col">
                 <button class="cart-form__btn"
-                        @click="sendData"
+                        @click="submit"
                         :disabled="formInProcess">
                     Send
                 </button>
@@ -62,49 +62,35 @@
 </template>
 
 <script>
-import { debounce } from '@/helpers/utils';
-import { mockApi } from '@/api/mockApi';
-import { getStoreProp, setStoreProp } from '@/helpers/ls';
-
-// props need be saved in LS
-const persistProperties = [
-    'currentPrice',
-    'currentQuantity',
-    'currentAmount',
-    'currentNonce',
-    'price',
-    'quantity',
-    'amount',
-    'nonce',
-    'log',
-    'inputsMutationOrder',
-]
+import { debounce, capitalizeFirstLetter } from '@/helpers/utils';
+import { mapState, mapMutations, mapActions } from 'vuex';
 
 export default {
-    name: 'App', data() {
+    name: 'App',
+
+    data() {
         return {
-
-            // current values in inputs
-            currentPrice: null,
-            currentQuantity: null,
-            currentAmount: null,
-            currentNonce: 0,
-
-            // saved values
-            price: null,
-            quantity: null,
-            amount: null,
-            nonce: null,
-
-            log: [],
-
-            inputsMutationOrder: ['currentPrice', 'currentQuantity', 'currentAmount'],
-
             formInProcess: false,
         }
     },
 
     computed: {
+
+        ...mapState([
+            'currentPrice',
+            'currentQuantity',
+            'currentAmount',
+            'currentNonce',
+
+            'price',
+            'quantity',
+            'amount',
+            'nonce',
+
+            'log',
+            'inputsMutationOrder'
+        ]),
+
         earlierMutatedInput() {
             return this.inputsMutationOrder[2];
         },
@@ -144,100 +130,76 @@ export default {
                 amount: this.currentAmount
             });
         },
-
     },
 
     methods: {
+        ...mapMutations([
+            'setCurrentPrice',
+            'setCurrentQuantity',
+            'setCurrentAmount',
+            'setCurrentNonce',
+
+            'addLog',
+            'updateMutationOrder'
+        ]),
+
+        ...mapActions(['sendData']),
+
         calcInputValue() {
             if (this.calculatingInput === null) {
                 return;
             }
-            this[`${this.calculatingInput}Calc`]();
+
+            this[`calc${capitalizeFirstLetter(this.calculatingInput)}`]();
         },
 
-        currentPriceCalc() {
+        calcCurrentPrice() {
             if (this.currentAmount === '' || this.currentQuantity === '' || +this.currentQuantity === 0) {
                 return;
             }
-            this.currentPrice = String(this.currentAmount / this.currentQuantity)
+            this.setCurrentPrice(String(this.currentAmount / this.currentQuantity));
         },
 
-        currentQuantityCalc() {
+        calcCurrentQuantity() {
             if (this.currentAmount === '' || this.currentPrice === '' || +this.currentPrice === 0) {
                 return;
             }
-            this.currentQuantity = String(this.currentAmount / this.currentPrice)
+            this.setCurrentQuantity(String(this.currentAmount / this.currentPrice));
         },
 
-        currentAmountCalc() {
+        calcCurrentAmount() {
             if (this.currentPrice === '' || this.currentQuantity === '') {
                 return;
             }
-            this.currentAmount = String(this.currentPrice * this.currentQuantity)
+            this.setCurrentAmount(String(this.currentPrice * this.currentQuantity));
         },
 
-        addLog(message, status) {
-            this.log.unshift({
-                message, status
-            });
-        },
-
-        sendData() {
-            this.addLog(`Send form data. Payload: ${this.currentDataJSON} Current saved data: ${this.savedDataJSON}`);
+        submit() {
+            this.addLog({message: `Send form data. Payload: ${this.currentDataJSON} Current saved data: ${this.savedDataJSON}`});
             this.formInProcess = true;
 
-            mockApi({
+            this.sendData({
                 nonce: this.currentNonce,
                 price: this.currentPrice,
                 quantity: this.currentQuantity,
                 amount: this.currentAmount
-            }).then(({data}) => {
-                this.nonce = data.nonce;
-                this.price = data.price;
-                this.quantity = data.quantity;
-                this.amount = data.amount;
-                this.currentNonce++;
-                this.addLog(`Data saved successfully. New data: ${this.savedDataJSON}`, 'success');
+            }).then(() => {
+                this.addLog({message: `Data saved successfully. New data: ${this.savedDataJSON}`, status: 'success'});
             }).catch(() => {
-                this.addLog(`Error. Try later...`, 'error')
+                this.addLog({message: `Error. Try later...`, status: 'error'})
             }).finally(() => {
                 this.formInProcess = false;
             })
         },
-
-        updateMutationOrder(changedInputName) {
-            this.inputsMutationOrder = this.inputsMutationOrder.filter(inputName => inputName !== changedInputName);
-            this.inputsMutationOrder.unshift(changedInputName);
-        },
-
-        initDataFromStore() {
-            persistProperties.forEach(propName => {
-                const propValue = getStoreProp(propName);
-                if (propValue === null) {
-                    return;
-                }
-                this[propName] = JSON.parse(propValue);
-            })
-        },
-
     },
 
     created() {
         this.onInputChangeDebounced = debounce((inputName, val) => {
-            this[inputName] = val;
+            this[`set${capitalizeFirstLetter(inputName)}`](val);
             this.updateMutationOrder(inputName);
             this.calcInputValue();
-            this.addLog(`Input ${inputName} was changed`);
+            this.addLog({message: `Input ${inputName.replace('current', '')} was changed`});
         })
-
-        // watch props and save on change in LS
-        persistProperties.forEach(propName => {
-            this.$watch(vm => vm[propName], val => {
-                setStoreProp(propName, JSON.stringify(val))
-            })
-        });
-
-        this.initDataFromStore();
     },
 
 }
