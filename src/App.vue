@@ -4,31 +4,34 @@
         <div class="cart-form__inputs">
 
             <div class="cart-form__col">
-                <input class="cart-form__input"
-                       type="text"
-                       :value="currentPrice"
-                       @input="onInputChangeDebounced('currentPrice', $event.target.value)"
-                       placeholder="Price">
+                <only-numbers-input
+                        class="cart-form__input"
+                        :value="currentPrice"
+                        @input="onInputChangeDebounced('currentPrice', $event)"
+                        placeholder="Price">
+                </only-numbers-input>
                 <div class="value-title">Price:</div>
                 <div>{{ currentPrice }}</div>
             </div>
 
             <div class="cart-form__col">
-                <input class="cart-form__input"
-                       type="text"
-                       :value="currentQuantity"
-                       @input="onInputChangeDebounced('currentQuantity', $event.target.value)"
-                       placeholder="Quantity">
+                <only-numbers-input
+                        class="cart-form__input"
+                        :value="currentQuantity"
+                        @input="onInputChangeDebounced('currentQuantity', $event)"
+                        placeholder="Quantity">
+                </only-numbers-input>
                 <div class="value-title">Quantity:</div>
                 <div>{{ currentQuantity }}</div>
             </div>
 
             <div class="cart-form__col">
-                <input class="cart-form__input"
-                       type="text"
-                       :value="currentAmount"
-                       @input="onInputChangeDebounced('currentAmount', $event.target.value)"
-                       placeholder="Amount">
+                <only-numbers-input
+                        class="cart-form__input"
+                        :value="currentAmount"
+                        @input="onInputChangeDebounced('currentAmount', $event)"
+                        placeholder="Amount">
+                </only-numbers-input>
                 <div class="value-title">Amount:</div>
                 <div>{{ currentAmount }}</div>
             </div>
@@ -58,12 +61,15 @@
             <p v-else class="cart-form__log-placeholder">Events logging</p>
         </div>
 
+        <DescriptionInfo></DescriptionInfo>
     </div>
 </template>
 
 <script>
 import { debounce, capitalizeFirstLetter } from '@/helpers/utils';
 import { mapState, mapMutations, mapActions } from 'vuex';
+import DescriptionInfo from '@/components/DescriptionInfo.vue'
+import OnlyNumbersInput from '@/components/OnlyNumbersInput.vue'
 
 export default {
     name: 'App',
@@ -175,7 +181,7 @@ export default {
         },
 
         submit() {
-            this.addLog({message: `Send form data. Payload: ${this.currentDataJSON} Current saved data: ${this.savedDataJSON}`});
+            this.addLog({message: `Send form data. Current saved data: ${this.savedDataJSON} Payload: ${this.currentDataJSON}`});
             this.formInProcess = true;
 
             this.sendData({
@@ -202,7 +208,12 @@ export default {
         })
     },
 
+    components: {
+        DescriptionInfo,
+        OnlyNumbersInput,
+    }
+
 }
 </script>
 
-<style src="./styles/app.css"></style>
+<style src="./styles/app.scss" lang="scss"></style>
