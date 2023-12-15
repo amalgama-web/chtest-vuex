@@ -159,21 +159,21 @@ export default {
             if (this.currentAmount === '' || this.currentQuantity === '' || +this.currentQuantity === 0) {
                 return;
             }
-            this.currentPrice = this.currentAmount / this.currentQuantity
+            this.currentPrice = String(this.currentAmount / this.currentQuantity)
         },
 
         currentQuantityCalc() {
             if (this.currentAmount === '' || this.currentPrice === '' || +this.currentPrice === 0) {
                 return;
             }
-            this.currentQuantity = this.currentAmount / this.currentPrice
+            this.currentQuantity = String(this.currentAmount / this.currentPrice)
         },
 
         currentAmountCalc() {
             if (this.currentPrice === '' || this.currentQuantity === '') {
                 return;
             }
-            this.currentAmount = this.currentPrice * this.currentQuantity
+            this.currentAmount = String(this.currentPrice * this.currentQuantity)
         },
 
         addLog(message, status) {
