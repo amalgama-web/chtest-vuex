@@ -3,7 +3,7 @@
            :placeholder="placeholder"
            :disabled='disabled'
            :value="value"
-           @keyup="preventNonDigits"
+           @keypress="preventNonDigits"
            @input="onInput"
     >
 </template>
